@@ -34,20 +34,43 @@ synchronization between them, so this project automates:
   - `plistlib` to read `~/Library/Safari/Bookmarks.plist`.
   - `json` to read/write the `Bookmarks` file used by Chrome/Brave.
 
-## Usage (planned)
+## Usage
 
 ```bash
 python3 safari_bookmarks_sync.py --target chrome [--profile "Default"]
 python3 safari_bookmarks_sync.py --target brave  [--profile "Default"]
 ```
 
-Example `cron` configuration (every 10 minutes):
+Run `python3 safari_bookmarks_sync.py --help` for the full list of options.
+
+## Scheduling with cron
+
+Add one `cron` line per destination browser you want to keep in sync. For
+example, to sync every 10 minutes:
 
 ```cron
 */10 * * * * /usr/bin/python3 /path/to/repo/safari_bookmarks_sync.py --target chrome
 */10 * * * * /usr/bin/python3 /path/to/repo/safari_bookmarks_sync.py --target brave
 ```
 
-> Note: reading Safari's bookmarks may require granting "Full Disk Access" to
-> the process running the script (e.g. Terminal or `cron`), since Safari's
-> bookmarks file is protected by macOS.
+Steps:
+
+1. Find the absolute path to this repo and to `python3` (`which python3`).
+2. Run `crontab -e` and add the lines above, adjusting the paths. Add
+   `--profile "Profile 1"` (or whichever profile name applies) if you don't
+   use the default profile.
+3. Grant **Full Disk Access** to `cron` itself (not just Terminal), since
+   `cron` runs the script outside of Terminal's own permissions: go to
+   **System Settings > Privacy & Security > Full Disk Access**, click `+`,
+   press `Cmd+Shift+G` and enter `/usr/sbin/cron`, then enable it. Without
+   this, reads of Safari's `Bookmarks.plist` will fail with a permission
+   error.
+4. Make a change in Safari's bookmarks (add, rename, or delete one) and wait
+   for the next scheduled run — it should be reflected in the destination
+   browser(s) automatically. You can also trigger a run manually at any time
+   with the commands above to verify sooner.
+
+This has been manually verified end-to-end: syncing real Safari bookmarks
+into both Chrome and Brave profiles correctly reproduces Safari's bookmarks
+bar and every other top-level folder, with no manual steps beyond the
+initial cron/Full Disk Access setup.
