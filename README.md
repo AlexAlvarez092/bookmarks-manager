@@ -1,60 +1,53 @@
 # bookmarks-manager
 
-Sincroniza automáticamente los marcadores (bookmarks) de **Safari** hacia otros
-navegadores en macOS, de forma unidireccional: Safari es siempre la fuente de
-verdad y los navegadores destino terminan con una copia exacta de su árbol de
-marcadores (carpetas incluidas).
+Automatically synchronizes bookmarks from **Safari** to other browsers on
+macOS, in a one-way fashion: Safari is always the source of truth, and the
+destination browsers end up with an exact copy of its bookmark tree
+(including folders).
 
-## Motivación
+## Motivation
 
-Safari es el navegador principal donde se gestionan los marcadores, pero se
-usan otros navegadores (Chrome, Brave, ...) en el día a día. No existe una
-sincronización nativa entre ellos, así que este proyecto automatiza:
+Safari is the main browser used to manage bookmarks, but other browsers
+(Chrome, Brave, ...) are used day to day as well. There is no native
+synchronization between them, so this project automates:
 
-- Leer la estructura completa de marcadores de Safari.
-- Volcarla en el navegador destino, **sobrescribiendo** su archivo de
-  marcadores para que quede idéntica a la de Safari (se añaden los nuevos, se
-  actualizan los existentes y se eliminan los que ya no estén en Safari).
+- Reading the full bookmark structure from Safari.
+- Writing it to the destination browser, **overwriting** its bookmarks file
+  so it ends up identical to Safari's (new bookmarks are added, existing
+  ones are updated, and ones no longer in Safari are removed).
 
-## Alcance actual
+## Current scope
 
-- Solo macOS.
-- Sincronización unidireccional: Safari → otro navegador (nunca al revés).
-- Navegadores destino soportados: **Chrome** y **Brave** (basados en
-  Chromium).
-- Pensado para ejecutarse periódicamente vía `cron`, una línea por cada
-  navegador destino, pasando los parámetros necesarios (navegador, perfil,
-  etc.) como argumentos de línea de comandos.
-- No se gestionan backups del archivo de marcadores destino ni bloqueos si el
-  navegador destino está abierto: si el navegador sobrescribe el archivo al
-  cerrarse, la siguiente ejecución del job lo corrige automáticamente.
+- macOS only.
+- One-way sync: Safari → other browser (never the other way around).
+- Supported destination browsers: **Chrome** and **Brave** (Chromium-based).
+- Designed to run periodically via `cron`, one line per destination browser,
+  passing the necessary parameters (browser, profile, etc.) as
+  command-line arguments.
+- No backups of the destination bookmarks file are kept, and there is no
+  locking if the destination browser is open: if the browser overwrites the
+  file when it closes, the next scheduled run will fix it automatically.
 
-## Tecnología
+## Technology
 
-- **Python 3** (incluido en macOS), sin dependencias externas:
-  - `plistlib` para leer `~/Library/Safari/Bookmarks.plist`.
-  - `json` para leer/escribir el archivo `Bookmarks` de Chrome/Brave.
+- **Python 3** (bundled with macOS), no external dependencies:
+  - `plistlib` to read `~/Library/Safari/Bookmarks.plist`.
+  - `json` to read/write the `Bookmarks` file used by Chrome/Brave.
 
-## Uso (previsto)
+## Usage (planned)
 
 ```bash
 python3 safari_bookmarks_sync.py --target chrome [--profile "Default"]
 python3 safari_bookmarks_sync.py --target brave  [--profile "Default"]
 ```
 
-Ejemplo de configuración en `cron` (cada 10 minutos):
+Example `cron` configuration (every 10 minutes):
 
 ```cron
-*/10 * * * * /usr/bin/python3 /ruta/al/repo/safari_bookmarks_sync.py --target chrome
-*/10 * * * * /usr/bin/python3 /ruta/al/repo/safari_bookmarks_sync.py --target brave
+*/10 * * * * /usr/bin/python3 /path/to/repo/safari_bookmarks_sync.py --target chrome
+*/10 * * * * /usr/bin/python3 /path/to/repo/safari_bookmarks_sync.py --target brave
 ```
 
-> Nota: para leer los marcadores de Safari puede ser necesario conceder
-> "Acceso completo al disco" (Full Disk Access) al proceso que ejecute el
-> script (por ejemplo, Terminal o `cron`), ya que el archivo de marcadores de
-> Safari está protegido por macOS.
-
-## Estado del proyecto
-
-En desarrollo. Consulta los [issues](../../issues) del repositorio para ver
-las historias de usuario planificadas y su progreso.
+> Note: reading Safari's bookmarks may require granting "Full Disk Access" to
+> the process running the script (e.g. Terminal or `cron`), since Safari's
+> bookmarks file is protected by macOS.
